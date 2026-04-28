@@ -20,7 +20,22 @@ if dotenv_path.exists():
 
 mcp = FastMCP(
     "Check Point WAF",
-    instructions="MCP server for Check Point WAF management via GraphQL API",
+    instructions="""MCP server for Check Point WAF management via GraphQL API.
+
+CRITICAL RULES:
+- Always call publish_changes after create/update/delete operations before making dependent API calls.
+- Local practices (private to an asset/zone) require ownerId. Create shared practices (no ownerId) first, then attach to assets.
+- Region is set via CHECKPOINT_REGION env var (us/eu/ap/au/in). Mismatched regions cause "does not exist" errors.
+- Practice visibility: "Shared" = accessible by all assets; "Local" = only accessible with matching ownerId.
+
+COMMON WORKFLOWS:
+- Create asset with IPS/WebAttacks: Create a shared practice with modes=[{"mode":"Prevent","subPractice":"IPS"}] and practice_input={"WebAttacks":{"minimumSeverity":"Critical"}}, publish, then create asset with practice_ids=[practice_id].
+- Update practice: Call update_web_application_practice with practice_id and update_input dict (e.g., {"WebAttacks":{"minimumSeverity":"Critical"}}).
+
+PAYLOAD SHAPES:
+- update_web_application_asset input: {"addPractices":[{"practiceId":"id"}], "removePractices":[{"practiceId":"id"}]}
+- new_web_application_practice modes: [{"mode":"Prevent","subPractice":"IPS"}]
+""",
 )
 
 # Lazy-init globals
@@ -490,6 +505,14 @@ async def new_web_application_asset(
         urls: List of public-facing URLs for the asset.
         profile_ids: Optional list of profile IDs to attach.
         practice_ids: Optional list of practice IDs to attach.
+
+    Example workflow:
+        1. Create a shared practice: new_web_application_practice(name="my-practice", modes=[{"mode":"Prevent","subPractice":"IPS"}], practice_input={"WebAttacks":{"minimumSeverity":"Critical"}})
+        2. Publish: publish_changes()
+        3. Create asset: new_web_application_asset(name="my-app", upstream_url="https://backend:8080", urls=["https://my-app.com"], practice_ids=["practice-id-from-step-1"])
+
+    NOTE: Ensure practices are created and published BEFORE attaching them to a new asset.
+          Always call publish_changes after this operation.
     """
     _, gql = _get_clients()
     variables: dict[str, Any] = {
@@ -529,8 +552,17 @@ async def update_web_application_asset(
 
     Args:
         asset_id: ID of the asset to update.
-        update_input: Dictionary of fields to update. Supports: name, upstreamURL, addURLs, removeURLs, 
+        update_input: Dictionary of fields to update. Supports: name, upstreamURL, addURLs, removeURLs,
                        addProfiles, removeProfiles, addPractices, removePractices, state, stage, etc.
+
+    Payload examples:
+        - Add practices: {"addPractices": [{"practiceId": "practice-id-here"}]}
+        - Remove practices: {"removePractices": [{"practiceId": "practice-id-here"}]}
+        - Add URLs: {"addURLs": ["https://example.com"]}
+        - Remove URLs: {"removeURLs": ["https://example.com"]}
+        - Combined: {"addPractices": [{"practiceId": "id1"}], "addURLs": ["https://new.com"]}
+
+    NOTE: Always call publish_changes after this operation.
     """
     _, gql = _get_clients()
     mutation = """
@@ -570,9 +602,23 @@ async def new_web_application_practice(
 
     Args:
         name: Name for the new practice.
-        owner_id: Optional owner asset/zone ID (for local visibility practices).
+        owner_id: Optional owner asset/zone ID (for local/private visibility practices).
+                  Local practices can only be attached to the specified owner asset/zone.
+                  Omit for shared practices accessible by all assets.
         modes: Optional list of mode configs, e.g. [{"mode": "Prevent", "subPractice": "IPS"}].
+               Valid modes: "Prevent", "Detect", "Disabled", "AccordingToPractice".
+               Valid subPractice: "IPS", "WebAttacks", "WebBot", "Snort", "FileSecurity".
         practice_input: Optional advanced configuration dict with keys like IPS, WebAttacks, WebBot, Snort.
+
+    Examples:
+        - Shared practice with IPS in Prevent and WebAttacks for Critical only:
+          modes=[{"mode":"Prevent","subPractice":"IPS"}],
+          practice_input={"WebAttacks":{"minimumSeverity":"Critical"}}
+        - Local practice for specific asset:
+          owner_id="asset-id-here",
+          modes=[{"mode":"Prevent","subPractice":"IPS"}]
+
+    NOTE: Always call publish_changes after creating a practice before attaching it to an asset.
     """
     _, gql = _get_clients()
     variables: dict[str, Any] = {}
@@ -618,6 +664,13 @@ async def update_web_application_practice(
         practice_id: ID of the practice to update.
         update_input: Dictionary of fields to update (name, visibility, IPS, WebAttacks, WebBot, Snort).
         owner_id: Optional owner ID for local-visibility practices.
+
+    Examples:
+        - Set WebAttacks to Critical only: {"WebAttacks": {"minimumSeverity": "Critical"}}
+        - Update IPS settings: {"IPS": {"severityLevel": "High", "highConfidence": True}}
+        - Combined: {"WebAttacks": {"minimumSeverity": "Critical"}, "IPS": {"severityLevel": "Medium"}}
+
+    NOTE: Always call publish_changes after this operation.
     """
     _, gql = _get_clients()
     variables: dict[str, Any] = {

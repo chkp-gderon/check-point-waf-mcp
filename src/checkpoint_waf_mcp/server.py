@@ -2,12 +2,21 @@
 
 import json
 import os
+from pathlib import Path
 from typing import Any
 
+from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
 from .auth import AuthClient
 from .graphql_client import GraphQLClient
+
+
+# Load .env from repository root if present so launched MCP processes
+# can pick up credentials without requiring VS Code to inject them.
+dotenv_path = Path(__file__).resolve().parents[2] / ".env"
+if dotenv_path.exists():
+    load_dotenv(dotenv_path)
 
 mcp = FastMCP(
     "Check Point WAF",

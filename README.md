@@ -8,30 +8,32 @@ An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that 
 ## Features
 
 ### Queries
-- **getAssets** - List all WAF assets with optional filtering
-- **getAsset** - Get detailed information about a specific asset
-- **getProfiles** - List all WAF security profiles
-- **getProfile** - Get details of a specific security profile
-- **getPractices** - List all security practices
-- **getPractice** - Get details of a specific security practice
-- **getTuningSuggestions** - Get tuning suggestions for an asset
-- **getLogEntries** - Query WAF log entries with filters
-- **getCertificates** - List all uploaded certificates
-- **getPendingChanges** - View unpublished pending changes
+- **list_assets** - List all WAF assets with optional filtering
+- **get_asset** - Get detailed information about a specific asset
+- **get_web_application_asset** - Get full details of a Web Application asset including URLs and proxy settings
+- **get_asset_tuning** - Get tuning suggestions for an asset
+- **get_asset_tuning_review** - Get tuning review decisions for an asset
+- **get_asset_statistics** - Get traffic and security statistics for an asset
+- **list_profiles** - List all WAF security profiles
+- **get_profile** - Get details of a specific security profile
+- **list_agents** - List all connected agents/gateways
+- **list_practices** - List all security practices
+- **get_web_application_practice** - Get detailed Web Application Practice (WAF) configuration
+- **get_overview** - Get a high-level overview of configured objects
+- **list_log_triggers** - List all log trigger configurations
 
 ### Mutations
-- **createAsset** - Create a new web application or web API asset
-- **updateAsset** - Update an existing asset's configuration
-- **deleteAsset** - Delete an asset
-- **createProfile** - Create a new security profile
-- **updateProfile** - Update a security profile
-- **deleteProfile** - Delete a security profile
-- **applyTuningSuggestion** - Accept a tuning suggestion
-- **publishChanges** - Publish all pending changes
-- **discardChanges** - Discard all pending changes
+- **publish_changes** - Publish all pending changes
+- **discard_changes** - Discard all pending changes
+- **enforce_policy** - Enforce the latest published policy on all connected agents
+- **new_web_application_asset** - Create a new Web Application asset
+- **update_web_application_asset** - Update an existing Web Application asset
+- **delete_asset** - Delete an asset
+- **new_web_application_practice** - Create a new Web Application (WAF) practice
+- **update_web_application_practice** - Update a Web Application (WAF) practice
 
 ### Utility
-- **getGraphQLSchema** - Introspect the Check Point WAF GraphQL schema
+- **raw_graphql_query** - Execute arbitrary GraphQL queries/mutations (use for schema introspection or unsupported operations)
 
 ## Prerequisites
 

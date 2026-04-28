@@ -1,7 +1,6 @@
 # Check Point WAF MCP Server
 
 <!-- Badges placeholder -->
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 
 An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that provides tools for managing Check Point WAF through its GraphQL API.

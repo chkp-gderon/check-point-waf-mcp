@@ -101,14 +101,6 @@ Add the following to your Claude Desktop configuration file (`claude_desktop_con
 }
 ```
 
-### Alternative: Running with pip
-
-If you installed via pip, you can run the server directly:
-
-```bash
-python -m checkpoint_waf_mcp.server
-```
-
 ### Example Prompts
 
 Once connected, you can ask things like:

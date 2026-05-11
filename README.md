@@ -116,6 +116,8 @@ Once connected, you can ask things like:
 - "Show tuning suggestions for asset X"
 - "Create a new web application asset for my API"
 - "Publish my pending changes"
+- "Show me the exceptions for asset X"
+- "Show me the details for both exceptions"
 
 ## API Reference
 

@@ -2,6 +2,7 @@
 
 import json
 import os
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -15,8 +16,22 @@ from .graphql_client import GraphQLClient
 # Load .env from repository root if present so launched MCP processes
 # can pick up credentials without requiring VS Code to inject them.
 dotenv_path = Path(__file__).resolve().parents[2] / ".env"
+_dotenv_loaded = False
 if dotenv_path.exists():
     load_dotenv(dotenv_path)
+    _dotenv_loaded = True
+
+
+def _is_verbose() -> bool:
+    """Return true when startup diagnostics should be printed to stderr."""
+    value = os.environ.get("CHECKPOINT_WAF_MCP_VERBOSE", "1").strip().lower()
+    return value not in {"0", "false", "no", "off"}
+
+
+def _log(message: str) -> None:
+    """Print diagnostics to stderr so MCP stdio protocol on stdout is untouched."""
+    if _is_verbose():
+        print(f"[checkpoint-waf-mcp] {message}", file=sys.stderr, flush=True)
 
 mcp = FastMCP(
     "Check Point WAF",
@@ -51,11 +66,16 @@ def _get_clients() -> tuple[AuthClient, GraphQLClient]:
         access_key = os.environ.get("CHECKPOINT_ACCESS_KEY", "")
         region = os.environ.get("CHECKPOINT_REGION", "us")
         if not client_id or not access_key:
+            _log(
+                "Missing required credentials: set CHECKPOINT_CLIENT_ID and "
+                "CHECKPOINT_ACCESS_KEY"
+            )
             raise RuntimeError(
                 "Set CHECKPOINT_CLIENT_ID and CHECKPOINT_ACCESS_KEY environment variables"
             )
         _auth = AuthClient(client_id, access_key, region)
         _gql = GraphQLClient(_auth)
+        _log(f"Initialized API clients (region={region}, auth_base={_auth.base_url})")
     return _auth, _gql
 
 
@@ -723,6 +743,16 @@ async def raw_graphql_query(
 
 def main():
     """Run the MCP server."""
+    region = os.environ.get("CHECKPOINT_REGION", "us")
+    has_client_id = bool(os.environ.get("CHECKPOINT_CLIENT_ID"))
+    has_access_key = bool(os.environ.get("CHECKPOINT_ACCESS_KEY"))
+    _log("Starting Check Point WAF MCP server over stdio")
+    _log(f"Config: region={region}, .env_loaded={_dotenv_loaded}")
+    _log(
+        "Credentials present: "
+        f"CHECKPOINT_CLIENT_ID={has_client_id}, CHECKPOINT_ACCESS_KEY={has_access_key}"
+    )
+    _log("Server is ready and waiting for MCP client requests")
     mcp.run()
 
 

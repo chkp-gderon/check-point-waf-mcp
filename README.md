@@ -63,6 +63,7 @@ The server is configured via environment variables:
 | `CHECKPOINT_CLIENT_ID` | API client ID from Infinity Portal | Yes |
 | `CHECKPOINT_ACCESS_KEY` | API access key from Infinity Portal | Yes |
 | `CHECKPOINT_REGION` | Data center region | No (default: `us`) |
+| `CHECKPOINT_WAF_MCP_VERBOSE` | Enable server startup logs to stderr (`1` enabled, `0` disabled) | No (default: `1`) |
 
 ### Available Regions
 
@@ -74,13 +75,16 @@ The server is configured via environment variables:
 | `au` | Australia |
 | `in` | India |
 
-Copy `.env.example` to `.env` and fill in your credentials:
-
-```bash
-cp .env.example .env
-```
 
 ## Usage
+
+### Run Locally
+
+Start the MCP server directly from this repository:
+
+```bash
+python -m checkpoint_waf_mcp.server
+```
 
 ### Claude Desktop
 

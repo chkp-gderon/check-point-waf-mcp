@@ -284,6 +284,38 @@ async def get_asset_statistics(asset_id: str) -> str:
 
 
 @mcp.tool()
+async def get_asset_exceptions(asset_id: str) -> str:
+    """Get exceptions for a specific asset including metadata (objectStatus, time, created by).
+
+    Args:
+        asset_id: The unique identifier of the asset.
+    """
+    _, gql = _get_clients()
+    query = """
+    query ExceptionsMetaDataOnAsset($id: String!) {
+        getAsset(id: $id) {
+            behaviors {
+                id
+                ... on ExceptionParameter {
+                    id
+                    exceptions {
+                        id
+                        metadata {
+                            objectStatus
+                            time
+                            by
+                        }
+                    }
+                }
+            }
+        }
+    }
+    """
+    data = await gql.execute(query, {"id": asset_id}, use_v2=True)
+    return _fmt(data.get("getAsset", {}))
+
+
+@mcp.tool()
 async def list_profiles(match_search: str = "") -> str:
     """List all agent profiles (gateways, Docker, Kubernetes, etc.).
 
@@ -416,6 +448,45 @@ async def get_web_application_practice(practice_id: str) -> str:
     """
     data = await gql.execute(query, {"id": practice_id}, use_v2=True)
     return _fmt(data.get("getWebApplicationPractice", {}))
+
+
+@mcp.tool()
+async def get_exception_parameter(exception_parameter_id: str) -> str:
+    """Get detailed information about an exception parameter.
+
+    Args:
+        exception_parameter_id: The unique identifier of the exception parameter.
+    """
+    _, gql = _get_clients()
+    query = """
+    query ExceptionParameter($id: ID!) {
+        getExceptionParameter(id: $id) {
+            id
+            name
+            visibility
+            exceptions {
+                id
+                match
+                actions {
+                    id
+                    action
+                }
+                comment
+                metadata {
+                    objectStatus
+                    time
+                    by
+                }
+                supportedPracticesTypes {
+                    id
+                    practiceType
+                }
+            }
+        }
+    }
+    """
+    data = await gql.execute(query, {"id": exception_parameter_id}, use_v2=True)
+    return _fmt(data.get("getExceptionParameter", {}))
 
 
 @mcp.tool()

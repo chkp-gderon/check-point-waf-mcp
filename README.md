@@ -30,6 +30,8 @@ An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that 
 - **enforce_policy** - Enforce the latest published policy on all connected agents
 - **new_web_application_asset** - Create a new Web Application asset
 - **update_web_application_asset** - Update an existing Web Application asset
+- **upload_client_mtls_trusted_ca_chain** - Upload a trusted CA chain file for protected client mTLS configuration
+- **upload_server_mtls_trusted_ca_chain** - Upload a trusted CA chain file for server-side mTLS configuration
 - **delete_asset** - Delete an asset
 - **new_web_application_practice** - Create a new Web Application (WAF) practice
 - **update_web_application_practice** - Update a Web Application (WAF) practice

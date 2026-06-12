@@ -666,6 +666,96 @@ async def update_web_application_asset(
 
 
 @mcp.tool()
+async def upload_client_mtls_trusted_ca_chain(
+    proxy_setting_id: str,
+    trusted_ca_chain_file: str,
+    file_name: str,
+) -> str:
+    """Upload a trusted CA chain file for protected client mTLS configuration.
+
+    Args:
+        proxy_setting_id: ID of the web application proxy setting to update.
+        trusted_ca_chain_file: File contents as the data URI/base64 value expected by WAF.
+        file_name: Original trusted CA chain file name to store with the setting.
+
+    NOTE: Always call publish_changes after this operation.
+    """
+    _, gql = _get_clients()
+    mutation = """
+    mutation updateWebApplicationProxySetting(
+        $id: ID!,
+        $addProxySettingItems: [WebApplicationProxySettingItemsInput],
+        $removeProxySettingItems: [ID],
+        $updateProxySettingItems: [WebApplicationProxySettingItemsUpdateInput]
+    ) {
+        updateWebApplicationProxySetting(
+            id: $id,
+            addProxySettingItems: $addProxySettingItems,
+            removeProxySettingItems: $removeProxySettingItems,
+            updateProxySettingItems: $updateProxySettingItems
+        )
+    }
+    """
+    variables: dict[str, Any] = {
+        "id": proxy_setting_id,
+        "addProxySettingItems": [
+            {"key": "isTrustedCAListFile", "value": "true"},
+            {"key": "trustedCAListFile", "value": trusted_ca_chain_file},
+            {"key": "trustedCAListFileName", "value": file_name},
+        ],
+        "updateProxySettingItems": [],
+        "removeProxySettingItems": [],
+    }
+    data = await gql.execute(mutation, variables)
+    return _fmt(data)
+
+
+@mcp.tool()
+async def upload_server_mtls_trusted_ca_chain(
+    proxy_setting_id: str,
+    upstream_trusted_ca_file: str,
+    file_name: str,
+) -> str:
+    """Upload a trusted CA chain file for server-side mTLS configuration.
+
+    Args:
+        proxy_setting_id: ID of the web application proxy setting to update.
+        upstream_trusted_ca_file: File contents as the data URI/base64 value expected by WAF.
+        file_name: Original trusted CA chain file name to store with the setting.
+
+    NOTE: Always call publish_changes after this operation.
+    """
+    _, gql = _get_clients()
+    mutation = """
+    mutation updateWebApplicationProxySetting(
+        $id: ID!,
+        $addProxySettingItems: [WebApplicationProxySettingItemsInput],
+        $removeProxySettingItems: [ID],
+        $updateProxySettingItems: [WebApplicationProxySettingItemsUpdateInput]
+    ) {
+        updateWebApplicationProxySetting(
+            id: $id,
+            addProxySettingItems: $addProxySettingItems,
+            removeProxySettingItems: $removeProxySettingItems,
+            updateProxySettingItems: $updateProxySettingItems
+        )
+    }
+    """
+    variables: dict[str, Any] = {
+        "id": proxy_setting_id,
+        "addProxySettingItems": [
+            {"key": "isUpstreamTrustedCAFile", "value": "true"},
+            {"key": "upstreamTrustedCAFile", "value": upstream_trusted_ca_file},
+            {"key": "upstreamTrustedCAFileName", "value": file_name},
+        ],
+        "updateProxySettingItems": [],
+        "removeProxySettingItems": [],
+    }
+    data = await gql.execute(mutation, variables)
+    return _fmt(data)
+
+
+@mcp.tool()
 async def delete_asset(asset_id: str) -> str:
     """Delete an asset by ID. Remember to publish changes after deletion.
 

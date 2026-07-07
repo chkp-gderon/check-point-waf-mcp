@@ -109,14 +109,52 @@ Add the following to your Claude Desktop configuration file (`claude_desktop_con
       "command": "uvx",
       "args": ["checkpoint-waf-mcp"],
       "env": {
-        "CHECKPOINT_CLIENT_ID": "your-client-id",
-        "CHECKPOINT_ACCESS_KEY": "your-access-key",
-        "CHECKPOINT_REGION": "us"
+        "CHECKPOINT_CLIENT_ID": "${env:CHECKPOINT_CLIENT_ID}",
+        "CHECKPOINT_ACCESS_KEY": "${env:CHECKPOINT_ACCESS_KEY}",
+        "CHECKPOINT_REGION": "${env:CHECKPOINT_REGION}"
       }
     }
   }
 }
 ```
+
+### GitHub Copilot (VS Code)
+
+Add the following to your VS Code MCP configuration file (`mcp.json`):
+
+```json
+{
+  "servers": {
+    "checkpoint-waf": {
+      "type": "stdio",
+      "command": "checkpoint-waf-mcp",
+      "args": [],
+      "env": {
+        "CHECKPOINT_CLIENT_ID": "${env:CHECKPOINT_CLIENT_ID}",
+        "CHECKPOINT_ACCESS_KEY": "${env:CHECKPOINT_ACCESS_KEY}",
+        "CHECKPOINT_REGION": "${env:CHECKPOINT_REGION}"
+      }
+    }
+  }
+}
+```
+
+Alternatively, to use the Command Palette to install this MCP server in VS Code:
+
+1. Open the Command Palette and run `MCP: Add Server`.
+2. Choose `Stdio server`.
+3. Use this command if installed from this repository:
+
+```text
+checkpoint-waf-mcp
+```
+
+4. Configure these environment variables for the server:
+  - `CHECKPOINT_CLIENT_ID`
+  - `CHECKPOINT_ACCESS_KEY`
+  - `CHECKPOINT_REGION` (one of `us`, `eu`, `ap`, `au`, `in`)
+
+After adding the server, open Copilot Chat in Agent mode and run prompts such as "list all my WAF assets".
 
 ### Example Prompts
 

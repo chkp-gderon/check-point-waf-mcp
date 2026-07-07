@@ -21,6 +21,7 @@ An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that 
 - **list_practices** - List all security practices
 - **get_web_application_practice** - Get detailed Web Application Practice (WAF) configuration
 - **get_exception_parameter** - Get detailed exception parameter configuration including exceptions, actions, and supported practice types
+- **get_behavior** - Get behavior details by ID, including behavior type, visibility, and usage count
 - **get_overview** - Get a high-level overview of configured objects
 - **list_log_triggers** - List all log trigger configurations
 
@@ -35,6 +36,7 @@ An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that 
 - **delete_asset** - Delete an asset
 - **new_web_application_practice** - Create a new Web Application (WAF) practice
 - **update_web_application_practice** - Update a Web Application (WAF) practice
+- **update_practice_behaviors** - Add or remove behavior assignments for a practice/container pair
 
 ### Utility
 - **raw_graphql_query** - Execute arbitrary GraphQL queries/mutations (use for schema introspection or unsupported operations)
@@ -131,7 +133,7 @@ Add the following to your VS Code MCP configuration file (`mcp.json`):
 }
 ```
 
-Alternatively, to use the Command Palette to install this MCP server in VS Code:
+Alternatively, use the Command Palette to install this MCP server in VS Code:
 
 1. Open the Command Palette and run `MCP: Add Server`.
 2. Choose `Stdio server`.
@@ -140,11 +142,6 @@ Alternatively, to use the Command Palette to install this MCP server in VS Code:
 ```text
 checkpoint-waf-mcp
 ```
-
-4. Configure these environment variables for the server:
-  - `CHECKPOINT_CLIENT_ID`
-  - `CHECKPOINT_ACCESS_KEY`
-  - `CHECKPOINT_REGION` (one of `us`, `eu`, `ap`, `au`, `in`)
 
 After adding the server, open Copilot Chat in Agent mode and run prompts such as "list all my WAF assets".
 
@@ -158,6 +155,8 @@ Once connected, you can ask things like:
 - "Publish my pending changes"
 - "Show me the exceptions for asset X"
 - "Show me the details for both exceptions"
+- "Show me behavior details for behavior ID X"
+- "Remove behavior Y from asset Z"
 
 ## API Reference
 

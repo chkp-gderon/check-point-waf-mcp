@@ -490,6 +490,31 @@ async def get_exception_parameter(exception_parameter_id: str) -> str:
 
 
 @mcp.tool()
+async def get_behavior(behavior_id: str) -> str:
+    """Get detailed information about a behavior by ID (v1 API).
+
+    Args:
+        behavior_id: The unique identifier of the behavior.
+    """
+    _, gql = _get_clients()
+    query = """
+    query getBehavior($id: ID!) {
+        getBehavior(id: $id) {
+            __typename
+            id
+            name
+            visibility
+            objectStatus
+            behaviorType
+            usedBy
+        }
+    }
+    """
+    data = await gql.execute(query, {"id": behavior_id})
+    return _fmt(data.get("getBehavior", {}))
+
+
+@mcp.tool()
 async def get_overview() -> str:
     """Get a high-level overview of configured objects (assets, practices, profiles, etc.)."""
     _, gql = _get_clients()
@@ -871,6 +896,52 @@ async def update_web_application_practice(
             id: $id,
             practiceInput: $practiceInput,
             ownerId: $ownerId
+        )
+    }
+    """
+    data = await gql.execute(mutation, variables)
+    return _fmt(data)
+
+
+@mcp.tool()
+async def update_practice_behaviors(
+    practice_id: str,
+    container_id: str,
+    add_behaviors: list[str] | None = None,
+    remove_behaviors: list[str] | None = None,
+) -> str:
+    """Update behavior assignments on a practice for a specific container/asset (v1 API).
+
+    Args:
+        practice_id: The practice ID used by updatePracticeBehaviors (v1 GraphQL).
+        container_id: The container/object ID (for example, an asset ID).
+        add_behaviors: Optional behavior IDs to assign.
+        remove_behaviors: Optional behavior IDs to unassign.
+
+    NOTE: Always call publish_changes after this operation.
+    """
+    _, gql = _get_clients()
+    variables: dict[str, Any] = {
+        "practiceId": practice_id,
+        "containerId": container_id,
+    }
+    if add_behaviors is not None:
+        variables["addBehaviors"] = add_behaviors
+    if remove_behaviors is not None:
+        variables["removeBehaviors"] = remove_behaviors
+
+    mutation = """
+    mutation updatePracticeBehaviors(
+        $practiceId: ID!,
+        $containerId: ID!,
+        $addBehaviors: [ID],
+        $removeBehaviors: [ID]
+    ) {
+        updatePracticeBehaviors(
+            practiceId: $practiceId,
+            containerId: $containerId,
+            addBehaviors: $addBehaviors,
+            removeBehaviors: $removeBehaviors
         )
     }
     """

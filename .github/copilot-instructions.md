@@ -40,3 +40,15 @@ Use the Check Point WAF MCP server tools to manage assets, practices, and policy
 - "Practice does not exist" often means region mismatch or unpublished changes.
 - Verify connectivity with `get_overview`.
 - Inspect current objects with `list_practices(include_private=True)` and `get_web_application_asset`.
+
+## Exception Response Format
+
+When the user asks for exceptions on a WAF asset:
+
+- Show the behavior-to-asset mapping for the requested asset.
+- For each exception, show only:
+	- Exception ID
+	- Match logic (`match`)
+	- Action logic (`actions`)
+- Do not include timestamps/creation time unless explicitly requested.
+- Do not include a "Behaviors with exceptions vs none" summary block.

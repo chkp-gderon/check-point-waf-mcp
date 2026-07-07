@@ -13,6 +13,8 @@ Use the Check Point WAF MCP server tools to manage assets, practices, and policy
 - Call `publish_changes` after create, update, or delete operations.
 - Publish a practice before attaching it to an asset.
 - Use `owner_id` only for local practices (asset-scoped/private).
+- For asset discovery and selection, use only user-defined assets (`list_assets(user_defined=true)`).
+- Exclude the built-in `Any Service` asset from WAF asset lists and workflows.
 
 ## Common Workflows
 

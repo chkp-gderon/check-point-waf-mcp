@@ -1,0 +1,14 @@
+{
+  "servers": {
+    "checkpoint-waf": {
+      "type": "stdio",
+      "command": "checkpoint-waf-mcp",
+      "args": [],
+      "env": {
+        "CHECKPOINT_CLIENT_ID": "${env:CHECKPOINT_CLIENT_ID}",
+        "CHECKPOINT_ACCESS_KEY": "${env:CHECKPOINT_ACCESS_KEY}",
+        "CHECKPOINT_REGION": "${env:CHECKPOINT_REGION}"
+      }
+    }
+  }
+}

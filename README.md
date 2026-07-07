@@ -48,14 +48,22 @@ An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that 
 
 ### Using uv (recommended)
 
+If the package is published to a package index:
+
 ```bash
 uvx checkpoint-waf-mcp
+```
+
+From this local repository:
+
+```bash
+uvx --from . checkpoint-waf-mcp
 ```
 
 ### Using pip
 
 ```bash
-pip install checkpoint-waf-mcp
+pip install -e .
 ```
 
 ## Configuration

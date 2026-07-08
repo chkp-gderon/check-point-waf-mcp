@@ -41,6 +41,22 @@ Use the Check Point WAF MCP server tools to manage assets, practices, and policy
 - Verify connectivity with `get_overview`.
 - Inspect current objects with `list_practices(include_private=True)` and `get_web_application_asset`.
 
+## Behavior Removal Workflow (Important)
+
+- Prefer v1 for behavior deletion: `deleteBehavior(id: ID!)` (returns Boolean). v2 may not expose this mutation.
+- If `deleteBehavior` fails with `object-in-use`, detach the behavior first via v1:
+	`updatePracticeBehaviors(practiceId, containerId, removeBehaviors:[behaviorId])`.
+- After behavior create/update/delete operations, always call `publish_changes`.
+- Generic example: remove a behavior by first detaching it from the relevant practice/container,
+	then deleting it, with `containerId` set to the owning asset/zone ID.
+
+## Exception Query Workflow (Avoid Common Errors)
+
+- Preferred tool: `get_asset_exceptions_logic(asset_id)` for behavior mapping plus exception `match`/`actions` in one call.
+- Use `get_asset_exceptions(asset_id)` only when metadata (`objectStatus`, `time`, `by`) is specifically needed.
+- `get_exception_parameter(exception_parameter_id)` expects an ExceptionParameter/behavior ID, not an individual exception ID.
+- Do not use `raw_graphql_query` for exception retrieval unless explicitly requested; schema shape mismatches commonly cause 400 errors.
+
 ## Exception Response Format
 
 When the user asks for exceptions on a WAF asset:

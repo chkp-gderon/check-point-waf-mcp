@@ -46,10 +46,15 @@ CRITICAL RULES:
 COMMON WORKFLOWS:
 - Create asset with IPS/WebAttacks: Create a shared practice with modes=[{"mode":"Prevent","subPractice":"IPS"}] and practice_input={"WebAttacks":{"minimumSeverity":"Critical"}}, publish, then create asset with practice_ids=[practice_id].
 - Update practice: Call update_web_application_practice with practice_id and update_input dict (e.g., {"WebAttacks":{"minimumSeverity":"Critical"}}).
+- Exceptions for an asset: Prefer get_asset_exceptions_logic(asset_id) to get behavior mapping and each exception's match/actions in one call.
 
 PAYLOAD SHAPES:
 - update_web_application_asset input: {"addPractices":[{"practiceId":"id"}], "removePractices":[{"practiceId":"id"}]}
 - new_web_application_practice modes: [{"mode":"Prevent","subPractice":"IPS"}]
+
+EXCEPTION ID SEMANTICS:
+- get_exception_parameter expects an ExceptionParameter/behavior ID, not an individual exception ID.
+- Avoid raw_graphql_query for exception retrieval unless explicitly requested; mismatched query shapes may return HTTP 400.
 """,
 )
 
@@ -82,6 +87,16 @@ def _get_clients() -> tuple[AuthClient, GraphQLClient]:
 def _fmt(data: Any) -> str:
     """Format response data as JSON string."""
     return json.dumps(data, indent=2, default=str)
+
+
+def _try_parse_json(value: Any) -> Any:
+    """Parse JSON-encoded strings when possible; otherwise return original value."""
+    if not isinstance(value, str):
+        return value
+    try:
+        return json.loads(value)
+    except json.JSONDecodeError:
+        return value
 
 
 # ──────────────────────────────────────────────
@@ -455,7 +470,7 @@ async def get_exception_parameter(exception_parameter_id: str) -> str:
     """Get detailed information about an exception parameter.
 
     Args:
-        exception_parameter_id: The unique identifier of the exception parameter.
+        exception_parameter_id: The ExceptionParameter/behavior ID (not an individual exception ID).
     """
     _, gql = _get_clients()
     query = """
@@ -487,6 +502,99 @@ async def get_exception_parameter(exception_parameter_id: str) -> str:
     """
     data = await gql.execute(query, {"id": exception_parameter_id}, use_v2=True)
     return _fmt(data.get("getExceptionParameter", {}))
+
+
+@mcp.tool()
+async def get_asset_exceptions_logic(asset_id: str) -> str:
+    """Get exception logic for an asset in one call.
+
+    Returns behavior-to-asset mapping and each exception's `match` + `actions`.
+    This avoids ID confusion between ExceptionParameter IDs and exception IDs.
+
+    Args:
+        asset_id: The unique identifier of the asset.
+    """
+    _, gql = _get_clients()
+    query = """
+    query getAssetExceptionLogic($id: String!) {
+        getAsset(id: $id) {
+            id
+            name
+            behaviors {
+                __typename
+                id
+                ... on ExceptionParameter {
+                    exceptions {
+                        id
+                        match
+                        actions {
+                            id
+                            action
+                        }
+                    }
+                }
+            }
+        }
+    }
+    """
+    data = await gql.execute(query, {"id": asset_id}, use_v2=True)
+    asset = data.get("getAsset") or {}
+    asset_id_value = asset.get("id")
+
+    behavior_to_asset_mapping: list[dict[str, Any]] = []
+    exceptions_by_behavior: list[dict[str, Any]] = []
+
+    for behavior in asset.get("behaviors", []):
+        if behavior.get("__typename") != "ExceptionParameter":
+            continue
+
+        behavior_id = behavior.get("id")
+        if not behavior_id:
+            continue
+
+        behavior_to_asset_mapping.append(
+            {
+                "assetId": asset_id_value,
+                "behaviorId": behavior_id,
+            }
+        )
+
+        exceptions = []
+        for exception in behavior.get("exceptions", []):
+            actions = []
+            for action in exception.get("actions", []):
+                actions.append(
+                    {
+                        "id": action.get("id"),
+                        "action": _try_parse_json(action.get("action")),
+                    }
+                )
+
+            exceptions.append(
+                {
+                    "id": exception.get("id"),
+                    "match": _try_parse_json(exception.get("match")),
+                    "actions": actions,
+                }
+            )
+
+        exceptions_by_behavior.append(
+            {
+                "behaviorId": behavior_id,
+                "exceptions": exceptions,
+            }
+        )
+
+    return _fmt(
+        {
+            "asset": {
+                "id": asset_id_value,
+                "name": asset.get("name"),
+            },
+            "behaviorToAssetMapping": behavior_to_asset_mapping,
+            "exceptionsByBehavior": exceptions_by_behavior,
+        }
+    )
 
 
 @mcp.tool()

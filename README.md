@@ -15,12 +15,13 @@ An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that 
 - **get_asset_tuning_review** - Get tuning review decisions for an asset
 - **get_asset_statistics** - Get traffic and security statistics for an asset
 - **get_asset_exceptions** - Get exceptions for an asset including metadata (objectStatus, timestamp, created by)
+- **get_asset_exceptions_logic** - Get behavior-to-asset mapping and each exception's `match` + `actions` in one call
 - **list_profiles** - List all WAF security profiles
 - **get_profile** - Get details of a specific security profile
 - **list_agents** - List all connected agents/gateways
 - **list_practices** - List all security practices
 - **get_web_application_practice** - Get detailed Web Application Practice (WAF) configuration
-- **get_exception_parameter** - Get detailed exception parameter configuration including exceptions, actions, and supported practice types
+- **get_exception_parameter** - Get detailed exception parameter configuration (expects ExceptionParameter/behavior ID, not exception ID)
 - **get_behavior** - Get behavior details by ID, including behavior type, visibility, and usage count
 - **get_overview** - Get a high-level overview of configured objects
 - **list_log_triggers** - List all log trigger configurations
@@ -154,6 +155,7 @@ Once connected, you can ask things like:
 - "Create a new web application asset for my API"
 - "Publish my pending changes"
 - "Show me the exceptions for asset X"
+- "Show me exception logic for asset X"
 - "Show me the details for both exceptions"
 - "Show me behavior details for behavior ID X"
 - "Remove behavior Y from asset Z"
